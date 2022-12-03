@@ -126,7 +126,8 @@ namespace week1
                     }
                 }
             }
-next: ; // interesting -- gcc needs that ; or it complains about needing a primary-expression
+// interesting: both compilers need that semi after the label, else they complain about a missing primary expreession
+next: ;
         }
         return sum;
     }
