@@ -4,6 +4,8 @@
 #include <fstream>
 #include <set>
 #include <utility>
+#include <iostream>
+#include <bitset>
 
 namespace week1
 {
@@ -38,19 +40,18 @@ namespace week1
     }
 
     // RPS == Rock Paper Scissors, opponent is first
-    typedef std::pair<char, char> RPS;
+    typedef std::pair<char, char> RPS_t;
     struct RPSParser
     {
-        RPS operator()(const std::string& str)
+        RPS_t operator()(const std::string& str)
         {
-            return RPS{ str[0], str[2] };
+            return RPS_t{ str[0], str[2] };
         }
-
     };
 
     long day02a()
     {
-        std::vector<RPS> games;
+        std::vector<RPS_t> games;
         readers::read_by_line("../data/day02.dat", RPSParser(), games);
         long score = 0;
         for (auto it: games)
@@ -73,7 +74,7 @@ namespace week1
 
     long day02b()
     {
-        std::vector<RPS> games;
+        std::vector<RPS_t> games;
         readers::read_by_line("../data/day02.dat", RPSParser(), games);
         long score = 0;
         for (auto it: games)
@@ -83,16 +84,16 @@ namespace week1
             long me = 0;
             switch (outcome)
             {
-                case 1: /* I lose */
+                case 1: // I lose
                     me = opp - 1;
                     if (me == 0) me = 3;
                     score += me;
                     break;
-                case 2: /* draw */
+                case 2: // draw
                     me = opp;
                     score += me + 3;
                     break;
-                case 3: /* I win */
+                case 3: // I win
                     me = opp + 1;
                     if (me == 4) me = 1;
                     score += me + 6;
@@ -103,4 +104,68 @@ namespace week1
         return score;
     }
 
+    long day03a()
+    {
+        std::vector<std::string> rucksacks;
+        readers::read_by_line("../data/day03.dat", rucksacks);
+        long sum = 0;
+
+        for (auto it: rucksacks)
+        {
+            for (size_t i = 0; i < it.length() / 2; i++)
+            {
+                for (size_t j = it.length() / 2; j < it.length(); j++)
+                {
+                    if (it[i] == it[j])
+                    {
+                        if (it[i] <= 'Z')
+                            sum += it[i] - 'A' + 27;
+                        else
+                            sum += it[i] - 'a' + 1;
+                        goto next;
+                    }
+                }
+            }
+next: ; // interesting -- gcc needs that ; or it complains about needing a primary-expression
+        }
+        return sum;
+    }
+
+    long day03b()
+    {
+        std::vector<std::string> rucksacks;
+        readers::read_by_line("../data/day03.dat", rucksacks);
+        long sum = 0;
+
+        // convert each rucksack to a bitset, logically AND to find which position is set in each
+        typedef std::bitset<52> bits_t;
+
+        for (auto it = rucksacks.begin(); it != rucksacks.end(); )
+        {
+            bits_t bits[3];
+            for (size_t i = 0; i < 3; i++)
+            {
+                for (auto c: *it)
+                {
+                    if (c <= 'Z')
+                        bits[i].set(c - 'A' + 26);
+                    else
+                        bits[i].set(c - 'a');
+                }
+                it++;
+            }
+            bits_t result = bits[0] & bits[1] & bits[2];
+            assert(result.count() == 1);
+            for (size_t i = 0; i < 52; i++)
+            {
+                if (result[i])
+                {
+                    sum += i + 1;
+                    break;
+                }
+            }
+        }
+
+        return sum;
+    }
 };
