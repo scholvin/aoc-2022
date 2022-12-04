@@ -181,7 +181,7 @@ next: ;
             size_t d2 = str.find('-', c);
             return range_pair_t{
                 { std::stol(str.substr(0, d1)), std::stol(str.substr(d1+1, c-d1)) },
-                { std::stol(str.substr(c+1,d2-c)), std::stol(str.substr(d2+1)) }
+                { std::stol(str.substr(c+1, d2-c)), std::stol(str.substr(d2+1)) }
             };
         }
     };
@@ -196,7 +196,9 @@ next: ;
         {
             if ((r.first.first <= r.second.first && r.first.second >= r.second.second) ||
                 (r.second.first <= r.first.first && r.second.second >= r.first.second))
+            {
                 overlaps++;
+            }
         }
 
         return overlaps;
@@ -214,7 +216,9 @@ next: ;
                 (r.second.second >= r.first.first && r.second.second <= r.first.second) ||
                 (r.first.first >= r.second.first && r.first.first <= r.second.second) ||
                 (r.first.second >= r.second.first && r.first.second <= r.second.second))
+            {
                 overlaps++;
+            }
         }
 
         return overlaps;
