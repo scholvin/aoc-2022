@@ -40,19 +40,19 @@ namespace week1
     }
 
     // RPS == Rock Paper Scissors, opponent is first
-    typedef std::pair<char, char> RPS_t;
-    struct RPSParser
+    typedef std::pair<char, char> rps_t;
+    struct rps_parser
     {
-        RPS_t operator()(const std::string& str)
+        rps_t operator()(const std::string& str)
         {
-            return RPS_t{ str[0], str[2] };
+            return rps_t{ str[0], str[2] };
         }
     };
 
     long day02a()
     {
-        std::vector<RPS_t> games;
-        readers::read_by_line("../data/day02.dat", RPSParser(), games);
+        std::vector<rps_t> games;
+        readers::read_by_line("../data/day02.dat", rps_parser(), games);
         long score = 0;
         for (auto it: games)
         {
@@ -74,8 +74,8 @@ namespace week1
 
     long day02b()
     {
-        std::vector<RPS_t> games;
-        readers::read_by_line("../data/day02.dat", RPSParser(), games);
+        std::vector<rps_t> games;
+        readers::read_by_line("../data/day02.dat", rps_parser(), games);
         long score = 0;
         for (auto it: games)
         {
