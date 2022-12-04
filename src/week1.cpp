@@ -169,4 +169,54 @@ next: ;
 
         return sum;
     }
+
+    typedef std::pair<long, long> range_t;
+    typedef std::pair<range_t, range_t> range_pair_t;
+    struct range_pair_parser
+    {
+        range_pair_t operator()(const std::string& str)
+        {
+            size_t c = str.find(',');
+            size_t d1 = str.find('-');
+            size_t d2 = str.find('-', c);
+            return range_pair_t{
+                { std::stol(str.substr(0, d1)), std::stol(str.substr(d1+1, c-d1)) },
+                { std::stol(str.substr(c+1,d2-c)), std::stol(str.substr(d2+1)) }
+            };
+        }
+    };
+
+    long day04a()
+    {
+        std::vector<range_pair_t> ranges;
+        readers::read_by_line("../data/day04.dat", range_pair_parser(), ranges);
+
+        long overlaps = 0;
+        for (auto r: ranges)
+        {
+            if ((r.first.first <= r.second.first && r.first.second >= r.second.second) ||
+                (r.second.first <= r.first.first && r.second.second >= r.first.second))
+                overlaps++;
+        }
+
+        return overlaps;
+    }
+
+    long day04b()
+    {
+        std::vector<range_pair_t> ranges;
+        readers::read_by_line("../data/day04.dat", range_pair_parser(), ranges);
+
+        long overlaps = 0;
+        for (auto r: ranges)
+        {
+            if ((r.second.first >= r.first.first && r.second.first <= r.first.second) ||
+                (r.second.second >= r.first.first && r.second.second <= r.first.second) ||
+                (r.first.first >= r.second.first && r.first.first <= r.second.second) ||
+                (r.first.second >= r.second.first && r.first.second <= r.second.second))
+                overlaps++;
+        }
+
+        return overlaps;
+    }
 };
