@@ -223,4 +223,9 @@ next: ;
 
         return overlaps;
     }
+
+    long day05(char part)
+    {
+        return -1;
+    }
 };
