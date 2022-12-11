@@ -32,6 +32,24 @@ struct readers
         }
     }
 
+    // this was created for the monkey parser (2022 day 11) but maybe it'll be useful some other day
+    template <typename T, typename F>
+    static void read_by_n_lines(const std::string& filename, int n, F functor, T& result)
+    {
+        std::ifstream infile(filename);
+        while (infile.peek() != EOF)
+        {
+            std::vector<std::string> lines;
+            for (auto i = 0; i < n; i++)
+            {
+                std::string line;
+                std::getline(infile, line);
+                lines.push_back(line);
+            }
+            result.push_back(functor(lines));
+        }
+    }
+
     template <typename T>
     struct lexi_caster
     {
