@@ -46,38 +46,38 @@ namespace week2
         std::vector<std::string> instructions;
         readers::read_by_line("../data/day10.dat", instructions);
 
-        long cycle = 1;
+        long cycle = 0;
         long x = 1;
 
         auto pixel = [&]()
         {
-            long sub = (cycle-1) % 40;
-            if (x-1 <= sub && sub <= x+1)
+            if (cycle == 40)
+            {
+                std::cout << std::endl;
+                cycle = 0;
+            }
+            if (cycle >= x-1 && cycle <= x+1)
                 std::cout << "#";
             else
                 std::cout << ".";
-            if (sub % 40 == 0)
-                std::cout << std::endl;
-
         };
 
+        pixel();
         for (auto inst: instructions)
         {
             if (inst[0] == 'n') // noop
             {
                 cycle++;
-                pixel();
-
             }
             else // addx op
             {
                 long op = std::stol(inst.substr(inst.find(' ') + 1));
                 cycle++;
                 pixel();
-                x += op;
                 cycle++;
-                pixel();
+                x += op;
             }
+            pixel();
         }
 
         return 0; // cout gets RBPARAGF if you squint
