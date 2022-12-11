@@ -1,11 +1,14 @@
 #include "week1.h"
 #include "util.h"
 
+#include <boost/algorithm/string.hpp>
+
 #include <fstream>
 #include <set>
 #include <utility>
 #include <iostream>
 #include <bitset>
+#include <deque>
 
 namespace week1
 {
@@ -226,6 +229,70 @@ next: ;
 
     long day05(char part)
     {
-        return -1;
+        // use a deque, so we can load it from the back as we read the input top down, but push/pop from the front
+        typedef std::deque<char> stack_t;
+        std::vector<stack_t> stacks;
+        std::ifstream infile("../data/day05.dat");
+        std::string line;
+
+        while (std::getline(infile, line))
+        {
+            if (stacks.size() == 0)
+            {
+                stacks.resize(line.length() / 4 + 1);
+            }
+            if (line.substr(0, 2) == " 1")
+            {
+                break;
+            }
+            for (size_t i = 0; i < stacks.size(); i++)
+            {
+                if (line[i*4 + 1] != ' ')
+                {
+                    stacks[i].push_back(line[i*4+1]);
+                }
+            }
+        }
+        std::getline(infile, line); // blank line
+        while (std::getline(infile, line))
+        {
+            // "move X from Y to Z"
+            std::vector<std::string> parts;
+            boost::split(parts, line, boost::is_any_of(" "));
+            long num = std::stol(parts[1]);
+            long src = std::stol(parts[3]) - 1;
+            long dest = std::stol(parts[5]) - 1;
+
+            if (part == 'a')
+            {
+                for (auto i = 0; i < num; i++)
+                {
+                    stacks[dest].push_front(stacks[src].front());
+                    stacks[src].pop_front();
+                }
+            }
+            else // part b, of course
+            {
+                stack_t temp;
+                for (auto i = 0; i < num; i++)
+                {
+                    temp.push_front(stacks[src].front());
+                    stacks[src].pop_front();
+                }
+                for (auto i = 0; i < num; i++)
+                {
+                    stacks[dest].push_front(temp.front());
+                    temp.pop_front();
+                }
+            }
+        }
+
+        for (auto it: stacks)
+        {
+            std::cout << it.front();
+        }
+        std::cout << std::endl;
+
+        return 0;
     }
 };
