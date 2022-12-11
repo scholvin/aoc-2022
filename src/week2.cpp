@@ -169,15 +169,10 @@ namespace week2
 
         for (int r = 0; r < 20; r++)
         {
-            std::cout << "round " << r << std::endl;
-            int mn = 0;
             for (auto& m: monkeys)
             {
-                std::cout << "  monkey " << mn << std::endl;
                 for (auto it = m.items.begin(); it != m.items.end(); )
                 {
-                    std::cout << "    inspects " << *it << std::endl;
-                    std::cout << "      op " << (int)m.op << " v " << m.operand;
                     m.inspections++;
                     switch (m.op)
                     {
@@ -185,41 +180,68 @@ namespace week2
                         case MULT: *it *= m.operand; break;
                         case SQUARE: *it *= *it; break;
                     }
-                    std::cout << " to " << *it << std::endl;
                     *it /= 3;
-                    std::cout << "      div to " << *it << std::endl;
                     if (*it % m.divisor == 0)
                     {
                         monkeys[m.dest_true].items.push_back(*it);
-                        std::cout <<  "      toss to " << m.dest_true << std::endl;
                     }
                     else
                     {
                         monkeys[m.dest_false].items.push_back(*it);
-                        std::cout <<  "      toss to " << m.dest_false << std::endl;
                     }
                     it++;
                     m.items.pop_front();
                 }
-                mn++;
-            }
-            for (auto m: monkeys)
-            {
-                for (auto i: m.items)
-                {
-                    std::cout << i << " ";
-                }
-                std::cout << std::endl;
             }
         }
 
         // find the two most active monkeys
-        std::sort(monkeys.begin(), monkeys.end(), [](monkey& a, monkey& b) { return a.inspections < b.inspections; } );
-
-        auto it = monkeys.rbegin();
-        long product = it->inspections;
-        it++;
-        product *= it->inspections;
-        return product;
+        std::sort(monkeys.begin(), monkeys.end(), [](monkey& a, monkey& b) { return a.inspections > b.inspections; } );
+        return monkeys[0].inspections * monkeys[1].inspections;
     }
+
+    long day11b()
+    {
+        std::vector<monkey> monkeys;
+        readers::read_by_n_lines("../data/day11.dat", 7, monkey_parser(), monkeys);
+
+        long master = 1;
+        for (auto m: monkeys)
+        {
+            // had to looks this trick up, not gonna lie
+            master *= m.divisor;
+        }
+
+        for (int r = 0; r < 10000; r++)
+        {
+            for (auto& m: monkeys)
+            {
+                for (auto it = m.items.begin(); it != m.items.end(); )
+                {
+                    m.inspections++;
+                    switch (m.op)
+                    {
+                        case ADD: *it += m.operand; break;
+                        case MULT: *it *= m.operand; break;
+                        case SQUARE: *it *= *it; break;
+                    }
+                    *it %= master;
+                    if (*it % m.divisor == 0)
+                    {
+                        monkeys[m.dest_true].items.push_back(*it);
+                    }
+                    else
+                    {
+                        monkeys[m.dest_false].items.push_back(*it);
+                    }
+                    it++;
+                    m.items.pop_front();
+                }
+            }
+        }
+
+        std::sort(monkeys.begin(), monkeys.end(), [](monkey& a, monkey& b) { return a.inspections > b.inspections; } );
+        return monkeys[0].inspections * monkeys[1].inspections;
+    }
+
 };
