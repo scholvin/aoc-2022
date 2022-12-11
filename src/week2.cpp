@@ -51,15 +51,16 @@ namespace week2
 
         auto pixel = [&]()
         {
-            if (cycle == 40)
+            long mod = cycle % 40;
+            if (cycle > 0 && mod == 0)
             {
                 std::cout << std::endl;
-                cycle = 0;
             }
-            if (cycle >= x-1 && cycle <= x+1)
-                std::cout << "#";
-            else
-                std::cout << ".";
+            if (cycle == 240)
+            {
+                return;
+            }
+            std::cout << ((mod >= x-1 && mod <= x+1) ? "▓" : " ");
         };
 
         pixel();
