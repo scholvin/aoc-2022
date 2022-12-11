@@ -273,16 +273,18 @@ next: ;
             }
             else // part b, of course
             {
-                stack_t temp;
+                // deque doesn't support splice operations, so this isn't awesome, but it works
+                auto it = stacks[src].begin();
+                std::advance(it, num-1);
+
                 for (auto i = 0; i < num; i++)
                 {
-                    temp.push_front(stacks[src].front());
-                    stacks[src].pop_front();
+                    stacks[dest].push_front(*it);
+                    it--;
                 }
                 for (auto i = 0; i < num; i++)
                 {
-                    stacks[dest].push_front(temp.front());
-                    temp.pop_front();
+                    stacks[src].pop_front();
                 }
             }
         }
