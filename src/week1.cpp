@@ -297,4 +297,59 @@ next: ;
 
         return 0;
     }
+
+    // could use the 6b solution here, too, just parameterize the length to check
+    long day06a()
+    {
+        std::ifstream infile("../data/day06.dat");
+        std::string line;
+        std::getline(infile, line);
+
+        size_t pos = 3;
+        while (pos < line.length())
+        {
+            if (line[pos-3] == line[pos-2] || line[pos-3] == line[pos-1] || line[pos-3] == line[pos] ||
+                line[pos-2] == line[pos-1] || line[pos-2] == line[pos] ||
+                line[pos-1] == line[pos])
+                pos++;
+            else
+                break;
+        }
+        return pos+1;
+    }
+
+    long day06b()
+    {
+        std::ifstream infile("../data/day06.dat");
+        std::string line;
+        std::getline(infile, line);
+
+        const size_t LEN = 14;
+        int counts[26];
+        bzero(counts, sizeof(counts));
+
+        for (size_t i = 0; i < LEN; i++)
+            counts[line[i]-'a']++;
+
+        size_t pos = LEN-1;
+        bool bust;
+        while (pos < line.length())
+        {
+            bust = false;
+            for (auto i = 0; i < 26; i++)
+            {
+                if (counts[i] > 1)
+                {
+                    bust = true;
+                    pos++;
+                    counts[line[pos-LEN]-'a']--;
+                    counts[line[pos]-'a']++;
+                    break;
+                }
+            }
+            if (!bust)
+                break;
+        }
+        return pos+1;
+    }
 };
