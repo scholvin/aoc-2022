@@ -132,6 +132,52 @@ namespace week2
         return visible;
     }
 
+    long day08b()
+    {
+        forest_t forest;
+        readers::read_dense_2d_matrix("../data/day08.dat", tree_parser(), forest);
+
+        long best = 0;
+        for (auto x = 1; x < F_WIDTH-1; x++)
+        {
+            for (auto y = 1; y < F_HEIGHT-1; y++)
+            {
+                long up = 0;
+                for (auto i = y-1; i >= 0; i--)
+                {
+                    up++;
+                    if (forest[x][i].height >= forest[x][y].height)
+                        break;
+                }
+                long down = 0;
+                for (auto i = y+1; i < F_HEIGHT; i++)
+                {
+                    down++;
+                    if (forest[x][i].height >= forest[x][y].height)
+                        break;
+                }
+                long left = 0;
+                for (auto i = x-1; i >= 0; i--)
+                {
+                    left++;
+                    if (forest[i][y].height >= forest[x][y].height)
+                        break;
+                }
+                long right = 0;
+                for (auto i = x+1; i < F_WIDTH; i++)
+                {
+                    right++;
+                    if (forest[i][y].height >= forest[x][y].height)
+                        break;
+                }
+
+                if (up * down * left * right > best)
+                    best = up * down * left * right;
+            }
+        }
+        return best;
+    }
+
     long day10a()
     {
         std::vector<std::string> instructions;
