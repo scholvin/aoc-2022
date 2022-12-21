@@ -6,7 +6,6 @@
 #include <vector>
 #include <iostream>
 #include <cstdio>
-#include <set>
 
 namespace week3
 {
@@ -58,37 +57,51 @@ namespace week3
             if (yb < y_min) y_min = yb;
         }
 
-        std::set<long> excluded;
+        typedef std::pair<long, long> range_t;
+        std::vector<range_t> ranges;
         for (auto s: sensors)
         {
-            // for each sensor, see if Y is in its radius, and exclude needed X positions in that row
-            // TODO, this is a very slow implementation, maybe better so save the ranges
+            // for each sensor, see if Y is in its radius, and exclude appropriate X range in that row
             if (Y >= s.y - s.dist && Y <= s.y + s.dist)
             {
-                std::cout << "sensor " << s.x << "," << s.y << " d=" << s.dist << " in range" << std::endl;
-
                 long delta = abs(Y - s.y);
                 long x0 = s.x - (s.dist - delta);
                 long x1 = s.x + (s.dist - delta);
-                std::cout << "  delta=" << delta << ": " << x0 << "," << x1 << std::endl;
 
+                // std::cout << "sensor " << s.x << "," << s.y << " d=" << s.dist << " in range" << std::endl;
+                //           << "  delta=" << delta << ": " << x0 << "," << x1 << std::endl;
 
-                for (long x = x0; x <= x1; x++)
-                {
-                    excluded.insert(x);
-                }
+                ranges.push_back(std::make_pair(x0, x1));
             }
         }
 
-        // remove any beacons in the row
-        for (auto b: beacons)
+        // merge overlapping intervals? this might be fun - and it is, like 10000x faster
+        std::sort(ranges.begin(), ranges.end(), [](range_t a, range_t b) { return a.first < b.first; });
+        std::vector<range_t> merged;
+        auto it = ranges.begin();
+        merged.push_back(*it++);
+        while (it != ranges.end())
         {
-            if (b.y == Y)
+            // if *it overlaps with top of stack, merge them and repush, else push *it
+            if (it->first <= merged.back().second)
             {
-                excluded.erase(b.x);
+                merged.back().second = std::max(it->second, merged.back().second);
             }
+            else
+            {
+                merged.push_back(*it);
+            }
+            it++;
         }
-        return excluded.size();
+
+        long exclusions = 0;
+        for (auto m: merged)
+        {
+            exclusions += m.second - m.first;
+        }
+        return exclusions;
     }
-   //  4861076    12390055µs
+    //  4861076    12390055µs std::set
+    //  4861076     3216357µs std::unordered_set
+    //  4861076         230µs range merge!
 };
