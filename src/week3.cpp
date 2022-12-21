@@ -20,30 +20,24 @@ namespace week3
         long x, y;
     };
 
-    long day15a()
+    void read_day_15(const std::string& filename,
+                     std::vector<sensor>& sensors, std::vector<beacon>& beacons,
+                     long& x_max, long& y_max, long& x_min, long& y_min)
     {
-        std::vector<sensor> sensors;
-        std::vector<beacon> beacons;
+        x_max = std::numeric_limits<long>::min();
+        y_max = std::numeric_limits<long>::min();
+        x_min = std::numeric_limits<long>::max();
+        y_min = std::numeric_limits<long>::max();
 
-#if 0
-        const long Y = 10;
-        std::ifstream infile("../data/day15-smol.dat");
-#else
-        const long Y = 2000000;
-        std::ifstream infile("../data/day15.dat");
-#endif
+        std::ifstream infile(filename);
         std::string line;
-
-        long x_max = std::numeric_limits<long>::min();
-        long y_max = std::numeric_limits<long>::min();
-        long x_min = std::numeric_limits<long>::max();
-        long y_min = std::numeric_limits<long>::max();
-
         while (std::getline(infile, line))
         {
             long xs, ys, xb, yb, dist;
             // enough of the parsing silliness, do something dirty
-            assert(std::sscanf(line.c_str(), "Sensor at x=%ld, y=%ld: closest beacon is at x=%ld, y=%ld", &xs, &ys, &xb, &yb) == 4);
+            int r = std::sscanf(line.c_str(), "Sensor at x=%ld, y=%ld: closest beacon is at x=%ld, y=%ld", &xs, &ys, &xb, &yb);
+            assert(r == 4);
+            (void)r; // keep optimized compile quiet
             dist = abs(xs-xb) + abs(ys-yb);
             sensors.push_back( { xs, ys, dist } );
             beacons.push_back( { xb, yb } );
@@ -56,6 +50,24 @@ namespace week3
             if (xb < x_min) x_min = xb;
             if (yb < y_min) y_min = yb;
         }
+    }
+
+    long day15a()
+    {
+        std::vector<sensor> sensors;
+        std::vector<beacon> beacons;
+        long x_max;
+        long y_max;
+        long x_min;
+        long y_min;
+
+#if 0
+        const long Y = 10;
+        read_day_15("../data/day15-smol.dat", sensors, beacons, x_max, y_max, x_min, y_min);
+#else
+        const long Y = 2000000;
+        read_day_15("../data/day15.dat", sensors, beacons, x_max, y_max, x_min, y_min);
+#endif
 
         typedef std::pair<long, long> range_t;
         std::vector<range_t> ranges;
@@ -75,7 +87,7 @@ namespace week3
             }
         }
 
-        // merge overlapping intervals? this might be fun - and it is, like 10000x faster
+        // merge overlapping intervals? this might be fun - and it is, like 6 orders of magnitude faster
         std::sort(ranges.begin(), ranges.end(), [](range_t a, range_t b) { return a.first < b.first; });
         std::vector<range_t> merged;
         auto it = ranges.begin();
@@ -104,4 +116,139 @@ namespace week3
     //  4861076    12390055µs std::set
     //  4861076     3216357µs std::unordered_set
     //  4861076         230µs range merge!
+
+    long day15b()
+    {
+        std::vector<sensor> sensors;
+        std::vector<beacon> beacons;
+        long x_max;
+        long y_max;
+        long x_min;
+        long y_min;
+
+#if 0
+        read_day_15("../data/day15-smol.dat", sensors, beacons, x_max, y_max, x_min, y_min);
+        const long X_MAX = 14;
+        const long Y_MAX = 11;
+#else
+        const long X_MAX = 4000000;
+        const long Y_MAX = X_MAX;
+        read_day_15("../data/day15.dat", sensors, beacons, x_max, y_max, x_min, y_min);
+#endif
+
+        /* idea stolen from reddit, but not the implementation:
+
+           for each sensor:
+             iterate over each point x,y immediately outside its coverage perimeter
+               if x,y is not in any other sensor's range, it's the answer
+
+            this will be something like O(s^2) but maybe that's OK (it kinda has to be)
+        */
+
+        auto covers = [](const sensor& s, long x, long y) -> bool
+        {
+            return (abs(x-s.x) + abs(y-s.y) <= s.dist);
+        };
+
+        for (size_t s = 0; s < sensors.size(); s++)
+        {
+            const sensor& S = sensors[s];
+            long x, y, d;
+            bool found;
+
+            // from top to right
+            for (d = 0, x = S.x, y = S.y + S.dist + 1; d < S.dist + 1; d++, x++, y--)
+            {
+                if (x < 0 || y < 0 || x > X_MAX || y > Y_MAX)
+                {
+                    continue;
+                }
+                found = false;
+                for (size_t t = s + 1; t < sensors.size(); t++)
+                {
+                    const sensor& T = sensors[t];
+                    if (covers(T, x, y))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    return x * 4000000 + y;
+                }
+            }
+
+            // from right to bottom
+            for (d = 0; d < S.dist + 1; d++, x--, y--)
+            {
+                if (x < 0 || y < 0 || x > X_MAX || y > Y_MAX)
+                {
+                    continue;
+                }
+                found = false;
+                for (size_t t = s + 1; t < sensors.size(); t++)
+                {
+                    const sensor& T = sensors[t];
+                    if (covers(T, x, y))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    return x * 4000000 + y;
+                }
+            }
+
+            // from bottom to left
+            for (d = 0; d < S.dist + 1; d++, x--, y++)
+            {
+                if (x < 0 || y < 0 || x > X_MAX || y > Y_MAX)
+                {
+                    continue;
+                }
+                found = false;
+                for (size_t t = s + 1; t < sensors.size(); t++)
+                {
+                    const sensor& T = sensors[t];
+                    if (covers(T, x, y))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    return x * 4000000 + y;
+                }
+            }
+
+            // from left to top
+            for (d = 0; d < S.dist + 1; d++, x++, y++)
+            {
+                if (x < 0 || y < 0 || x > X_MAX || y > Y_MAX)
+                {
+                    continue;
+                }
+                found = false;
+                for (size_t t = s + 1; t < sensors.size(); t++)
+                {
+                    const sensor& T = sensors[t];
+                    if (covers(T, x, y))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    return x * 4000000 + y;
+                }
+            }
+        }
+
+        return -1; // error
+    }
 };

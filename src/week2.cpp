@@ -378,7 +378,7 @@ namespace week2
         long master = 1;
         for (auto m: monkeys)
         {
-            // had to look this trick up, not gonna lie
+            // had to look this trick up, not gonna lie - could probably solve part a with this, too?
             master *= m.divisor;
         }
 
