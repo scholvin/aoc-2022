@@ -352,4 +352,148 @@ next: ;
         }
         return pos+1;
     }
+
+    struct file_t
+    {
+        std::string name;
+        long size;
+    };
+
+    struct dir_t
+    {
+        std::string name;
+        dir_t* parent;
+        std::vector<file_t> files;
+        std::vector<dir_t> dirs;
+    };
+
+    void print_file_system(const dir_t& dir, int i)
+    {
+        const int INDENT = 2;
+        std::cout << std::string(i, ' ') << "+ " << dir.name << std::endl;
+        for (auto f: dir.files)
+        {
+            std::cout << std::string(i+2, ' ') << "- " << f.name << " " << f.size << std::endl;
+        }
+        for (auto d: dir.dirs)
+        {
+            print_file_system(d, i+INDENT);
+        }
+    }
+
+    long traverse_file_system_day07a(const dir_t& dir, long& sum)
+    {
+        long here = 0;
+        for (auto f: dir.files)
+            here += f.size;
+        for (auto d: dir.dirs)
+            here += traverse_file_system_day07a(d, sum);
+        if (here < 100000)
+        {
+            // std::cout << here << std::endl;
+            sum += here;
+        }
+        return here;
+    }
+
+    void read_file_system(dir_t& root, const std::string& filename)
+    {
+        std::vector<std::string> input;
+        readers::read_by_line(filename, input);
+
+        root.name = "/";
+        root.parent = nullptr;
+        dir_t* cwd = &root;
+        bool reading_dir = false;
+        auto it = input.begin();
+        it++; // first line is "$ cd /" and we just did that
+
+        while (it != input.end())
+        {
+            if (reading_dir)
+            {
+                if ((*it)[0] == 'd')
+                {
+                    // new dir
+                    cwd->dirs.push_back( { it->substr(4, std::string::npos), cwd });
+                    it++;
+                }
+                else if ((*it)[0] >= '0' && (*it)[0] <= '9')
+                {
+                    // new file
+                    size_t div = it->find(' ');
+                    cwd->files.push_back( { it->substr(div+1, std::string::npos), std::stol(it->substr(0,div)) });
+                    it++;
+                }
+                else if ((*it)[0] == '$')
+                {
+                    // new command - do not increment iterator
+                    reading_dir = false;
+                }
+                else
+                {
+                    abort(); // bug
+                }
+            }
+            else
+            {
+                if ((*it)[0] == '$')
+                {
+                    if ((*it)[2] == 'c')
+                    {
+                        // cd
+                        const std::string dest = it->substr(5, std::string::npos);
+                        if (dest == "..")
+                        {
+                            cwd = cwd->parent;
+                        }
+                        else
+                        {
+                            // is dest here?
+                            auto d = std::find_if(cwd->dirs.begin(), cwd->dirs.end(), [dest](dir_t const& n) { return n.name == dest; });
+                            if (d == cwd->dirs.end())
+                            {
+                                // no, new dir, create and cd
+                                cwd->dirs.push_back( { dest, cwd } );
+                                cwd = &(cwd->dirs.back());
+                            }
+                            else
+                            {
+                                // yes, just cd
+                                cwd = &(*d);
+                            }
+                        }
+
+                        it++;
+                    }
+                    else if ((*it)[2] == 'l')
+                    {
+                        // ls
+                        reading_dir = true;
+                        it++;
+                    }
+                    else
+                    {
+                        abort(); // bug
+                    }
+                }
+            }
+        }
+    }
+
+    long day07(char part)
+    {
+        dir_t root;
+        read_file_system(root, "../data/day07.dat");
+        // print_file_system(root, 0);
+
+        if (part == 'a')
+        {
+            long sum = 0;
+            traverse_file_system_day07a(root, sum);
+            return sum;
+        }
+
+        return -1;
+    }
 };
