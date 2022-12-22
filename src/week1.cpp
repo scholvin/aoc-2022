@@ -367,6 +367,7 @@ next: ;
         std::vector<dir_t> dirs;
     };
 
+    // for debugging
     void print_file_system(const dir_t& dir, int i)
     {
         const int INDENT = 2;
@@ -381,18 +382,17 @@ next: ;
         }
     }
 
-    long traverse_file_system_day07a(const dir_t& dir, long& sum)
+    // recursive function to traverse the file system
+    // returns the total size, and populates the vector dir_sizes which has all the sizes at all points on the tree
+    long traverse_file_system_day07(const dir_t& dir, std::vector<long>& dir_sizes)
     {
         long here = 0;
         for (auto f: dir.files)
             here += f.size;
         for (auto d: dir.dirs)
-            here += traverse_file_system_day07a(d, sum);
-        if (here < 100000)
-        {
-            // std::cout << here << std::endl;
-            sum += here;
-        }
+            here += traverse_file_system_day07(d, dir_sizes);
+        dir_sizes.push_back(here);
+
         return here;
     }
 
@@ -487,13 +487,38 @@ next: ;
         read_file_system(root, "../data/day07.dat");
         // print_file_system(root, 0);
 
+        std::vector<long> dir_sizes;
+        long total = traverse_file_system_day07(root, dir_sizes);
+
         if (part == 'a')
         {
             long sum = 0;
-            traverse_file_system_day07a(root, sum);
+            for (auto d: dir_sizes)
+            {
+                if (d <= 100000)
+                {
+                    sum += d;
+                }
+            }
             return sum;
         }
+        else
+        {
+            // part b
+            std::sort(dir_sizes.begin(), dir_sizes.end());
 
-        return -1;
+            const long AVAIL = 70000000;
+            const long NEED_FREE = 30000000;
+            const long ACTUAL_FREE = AVAIL - total;
+
+            for (auto d: dir_sizes)
+            {
+                if (ACTUAL_FREE + d >= NEED_FREE)
+                {
+                    return d;
+                }
+            }
+        }
+        return -1; // quiet compiler
     }
 };
