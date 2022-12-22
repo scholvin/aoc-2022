@@ -16,7 +16,6 @@ namespace week1
     long day06b();
     long day07(char part);
 
-
     const runner::method_map_t method_map =
     {
         { "1a", std::bind(&day01, 'a') },
